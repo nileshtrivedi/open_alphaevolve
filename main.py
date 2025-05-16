@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 import random
 import os
@@ -82,6 +83,7 @@ def build_prompt(parent_program, inspirations):
     prompt = "You are an expert programmer tasked with evolving code to solve a problem.\n"
     prompt += "Your goal is to suggest modifications (as a diff) to the 'Current program' to improve it.\n"
     prompt += "Consider the 'Prior programs' as inspiration for good ideas or approaches.\n\n"
+    prompt += "The goal is to have a function `fib(n)` that returns the nth Fibonacci number.\n"
 
     if inspirations:
         prompt += "--- Prior programs (inspirations) ---\n"
@@ -106,23 +108,20 @@ def build_prompt(parent_program, inspirations):
     prompt += "or an adjacent line of code.\n"
     prompt += "If you are suggesting deleting code, the REPLACE block should be empty.\n"
     prompt += "Focus on a single, meaningful change. The change should be syntactically correct Python.\n"
-    prompt += "Please provide only the diff block in your response.\n"
+    prompt += "Please provide only the diff block in your response. Do not provide any comments or codeblocks.\n"
     # Add more specific instructions based on the math/programming task if needed.
     prompt += "For example, if the current program is:\n"
     prompt += "```python\n# My Function\ndef my_func(x):\n    return x * 2\n```\n"
     prompt += "And you want to change it to `return x * 3`, the diff would be:\n"
     prompt += "<<<<<<< SEARCH\n    return x * 2\n=======\n    return x * 3\n>>>>>>> REPLACE\n"
 
-    print("--- Generated Prompt ---")
-    print(prompt)
-    print("------------------------")
     return prompt
 
 def generate_with_llm(prompt):
     """Generates a code modification (diff) using the LLM.
        [cite: 53, 54, 55, 81, 106, 107, 108, 109]
     """
-    response = gemini.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    response = gemini.models.generate_content(model="gemini-2.0-flash", contents=prompt)
     diff = response.text
     return diff
 
@@ -180,43 +179,26 @@ def execute_evaluator(child_program_str):
         "time_taken": 0,
         "debug_logs": ""
     }
-    # IMPORTANT: This is a placeholder.
-    # You need to define how to execute child_program_str and verify its output.
-    # This might involve:
-    # 1. Writing the string to a temporary .py file.
-    # 2. Importing and running a specific function from that file.
-    # 3. Using exec() (use with extreme caution due to security risks if program_str is not trusted).
-    # 4. Using a safer sandboxed execution environment.
+    try:
+        start_time = time.time()
+        
+        temp_module = {}
+        exec(child_program_str, temp_module)
+        output = temp_module.get('fib', lambda: None)(8) 
+        results["output_value"] = output
+        results["is_successful"] = (output == 21)
+        results["debug_logs"] = "Evaluation completed successfully."
+        results["time_taken"] = time.time() - start_time
+    except Exception as e:
+        results["debug_logs"] = f"Error during evaluation: {str(e)}"
+        results["is_successful"] = False
+        results["time_taken"] = time.time() - start_time
 
-    # For now, this function is kept empty as per the user's request.
-    # You will manually fill in the code for this.
-    # Example of what you might add:
-    # try:
-    #     # Example: Assume the program defines a function called 'run_solution'
-    #     # This is highly dependent on your specific task and how programs are structured
-    #     start_time = time.time()
-    #
-    #     # --- THIS IS WHERE YOUR CUSTOM EVALUATION LOGIC GOES ---
-    #     # For instance, if child_program_str defines a function `solution_function()`:
-    #     # temp_module = {}
-    #     # exec(child_program_str, temp_module)
-    #     # output = temp_module['solution_function']()
-    #     # results["output_value"] = output
-    #     # results["is_successful"] = True # Based on your verification criteria
-    #     # --- END OF CUSTOM EVALUATION LOGIC ---
-    #
-    #     results["debug_logs"] = "Evaluation completed (simulated)."
-    #     results["time_taken"] = time.time() - start_time
-    # except Exception as e:
-    #     results["debug_logs"] = f"Error during evaluation: {str(e)}"
-    #     results["is_successful"] = False
-
-    print(f"--- Evaluation Results (Simulated/Empty) ---\n{results}\n---------------------------------------")
+    print(f"--- Evaluation Results ---\n{results}\n---------------------------------------")
     return results
 
 
 # --- Main Evolution Loop ---
-
 def evolution_loop(generations=5):
     """The core evolution loop. [cite: 54]"""
     initialize_database()
@@ -273,12 +255,10 @@ def solve():
         print(f"--- End of Generation {i+1} ---")
 
 if __name__ == "__main__":
-    # Make sure to replace "YOUR_GEMINI_API_KEY" with your actual key
-    # or implement the LLM call in `generate_with_llm`
+
     if GEMINI_API_KEY == "YOUR_GEMINI_API_KEY":
         print("Warning: GEMINI_API_KEY is not set. LLM calls will be simulated.")
 
-    evolution_loop(generations=3) # Run for a few generations for demonstration
+    evolution_loop(generations=1) 
 
     print("\nEvolution loop finished.")
-    print(f"Final database content in: {DATABASE_FILE}")
