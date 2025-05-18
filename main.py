@@ -172,7 +172,7 @@ def evolve(evaluator_func, db_path, max_steps=1, num_children=1):
             results = evaluation_results[i]
             add_to_database(db, child_program_code, results)
         
-        # save_database(db_path, db)
+        save_database(db_path, db)
     
     final_programs = db.get("programs", [])
     if final_programs:
