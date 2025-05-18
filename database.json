@@ -1,9 +1,17 @@
-[
-    {
-        "uuid": "00000000-0000-0000-0000-000000000000",
-        "idea": "start with a boilerplate",
-        "program": "print('Hello, this is the initial boilerplate program')",
-        "result": {"score": 0.0, "verified": false, "notes": "This is a base seed program."},
-        "parent_uuid": null
-    }
-]
+{
+    "task": "define a function fib(n) that returns the nth Fibonacci number",
+    "programs": [
+        {
+            "id": "00000000-0000-0000-0000-000000000000",
+            "code": "print('this is just a boilerplate program, not real implementation.')",
+            "score": {
+                "exact_tests_passed": 0, 
+                "average_time": 10, 
+                "worst_time": 100, 
+                "memory_usage": 100, 
+                "cpu_usage": 100,
+                "logs": "Hello, this is the a boilerplate program, not real implementation."
+            }
+        }
+    ]
+}
