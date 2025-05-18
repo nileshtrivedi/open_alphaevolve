@@ -12,7 +12,7 @@ GEMINI_API_KEY = os.environ["GEMINI_API_KEY"] or "YOUR_GEMINI_API_KEY"
 @dask.delayed
 def eval_fib(code):
     score = {
-        "exact_tests_passed": 0,
+        "num_tests_passed": 0,
         "average_time": 10,
         "worst_time": 100,
         "memory_usage": 100,
@@ -24,11 +24,11 @@ def eval_fib(code):
         exec(code, temp_module)
         fib = temp_module.get('fib', lambda: None)
         if fib(1) == 1:
-            score["exact_tests_passed"] += 1
+            score["num_tests_passed"] += 1
         if fib(3) == 2:
-            score["exact_tests_passed"] += 1
+            score["num_tests_passed"] += 1
         if fib(8) == 21:
-            score["exact_tests_passed"] += 1
+            score["num_tests_passed"] += 1
         time_taken = time.time() - start_time
         score["average_time"] = time_taken
         score["worst_time"] = time_taken
@@ -176,8 +176,8 @@ def evolve(evaluator_func, db_path, max_steps=1, num_children=1):
     
     final_programs = db.get("programs", [])
     if final_programs:
-        # Example: find program with highest 'exact_tests_passed'
-        best_program = max(final_programs, key=lambda p: p['score'].get('exact_tests_passed', 0))
+        # Example: find program with highest 'num_tests_passed'
+        best_program = max(final_programs, key=lambda p: p['score'].get('num_tests_passed', 0))
         print(f"Best program found (ID: {best_program['id']}):")
         print(best_program['code'])
         print(f"Scores: {best_program['score']}")
